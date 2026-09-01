@@ -4,10 +4,8 @@ export interface Subject {
   name: string;
   department: string;
   teacher: string;
-  credits: number;
   description?: string;
   schedule?: string;
-  room?: string;
   createdAt: string;
 }
 
@@ -23,8 +21,11 @@ export interface Student {
   dateOfBirth?: string;
   status: "Active" | "Inactive" | "Suspended" | "Graduated";
   enrolledSubjectIds: string[];
-  gpa?: number;
   attendanceRate?: number;
+  paymentStatus: "Paid" | "Pending" | "Overdue";
+  monthlyFeeAmount?: number;
+  lastPaymentDate?: string;
+  paymentMonth?: string;
   createdAt: string;
   avatar?: string;
 }

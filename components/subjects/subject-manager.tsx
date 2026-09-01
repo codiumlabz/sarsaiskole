@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import { Student, Subject } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -21,13 +20,10 @@ import {
   Search,
   Users,
   Clock,
-  MapPin,
   User,
   Edit2,
   Trash2,
   AlertTriangle,
-  GraduationCap,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -218,35 +214,26 @@ export function SubjectManager({
                 </CardHeader>
 
                 <CardContent className="space-y-3 pt-0 text-xs">
-                  {/* Instructor & Location info */}
+                  {/* Instructor & Schedule info */}
                   <div className="space-y-1.5 text-muted-foreground bg-muted/40 p-2.5 rounded-lg border border-border/60">
                     <div className="flex items-center gap-1.5 text-foreground font-medium">
                       <User className="h-3.5 w-3.5 text-primary shrink-0" />
                       <span className="truncate">{subject.teacher}</span>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1 text-[11px]">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {subject.schedule || "Mon/Wed"}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {subject.room || "Main Campus"}
-                      </span>
+                    <div className="flex items-center gap-1 pt-1 text-[11px]">
+                      <Clock className="h-3 w-3 text-muted-foreground" />
+                      <span>{subject.schedule || "Mon/Wed"}</span>
                     </div>
                   </div>
 
                   {/* Footer Meta: Enrolled count & Actions */}
                   <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <div className="flex items-center gap-3 text-muted-foreground">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <span className="flex items-center gap-1 font-medium text-foreground">
                         <Users className="h-3.5 w-3.5 text-primary" />
                         {count} {count === 1 ? "student" : "students"}
                       </span>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                        {subject.credits} Credits
-                      </Badge>
                     </div>
 
                     <div className="flex items-center gap-1">

@@ -17,6 +17,7 @@ import { StatCards } from "@/components/dashboard/stat-cards";
 import { StudentTable } from "@/components/students/student-table";
 import { AddStudentDialog } from "@/components/students/add-student-dialog";
 import { StudentDetailDialog } from "@/components/students/student-detail-dialog";
+import { StudentQrDialog } from "@/components/students/student-qr-dialog";
 import { SubjectManager } from "@/components/subjects/subject-manager";
 import { AddSubjectDialog } from "@/components/subjects/add-subject-dialog";
 
@@ -24,16 +25,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  GraduationCap,
   Users,
   BookOpen,
-  PlusCircle,
   BarChart3,
   Layers,
-  Sparkles,
   BookPlus,
   UserPlus,
   CheckCircle2,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,6 +52,10 @@ export default function HomePage() {
   const [editingStudent, setEditingStudent] = React.useState<Student | null>(null);
   const [viewingStudent, setViewingStudent] = React.useState<Student | null>(null);
 
+  // Student QR Code Dialog State
+  const [qrStudent, setQrStudent] = React.useState<Student | null>(null);
+  const [isNewStudentQr, setIsNewStudentQr] = React.useState<boolean>(false);
+
   // Subject Dialog States
   const [isAddSubjectOpen, setIsAddSubjectOpen] = React.useState<boolean>(false);
   const [editingSubject, setEditingSubject] = React.useState<Subject | null>(null);
@@ -66,7 +69,7 @@ export default function HomePage() {
       setStudents(loadedStudents);
       setSubjects(loadedSubjects);
 
-      // Simulate a brief loading skeleton state for realistic UX
+      // Brief loading skeleton state for UX
       const timer = setTimeout(() => {
         setIsDataLoading(false);
       }, 500);
@@ -94,7 +97,7 @@ export default function HomePage() {
   };
 
   // Student Operations
-  const handleSaveStudent = (studentData: Student) => {
+  const handleSaveStudent = (studentData: Student, isNew: boolean) => {
     setStudents((prev) => {
       const exists = prev.some((s) => s.id === studentData.id);
       let updated: Student[];
@@ -107,6 +110,12 @@ export default function HomePage() {
       return updated;
     });
     setEditingStudent(null);
+
+    // Automatically open the unique QR code dialog when a new student is added!
+    if (isNew) {
+      setQrStudent(studentData);
+      setIsNewStudentQr(true);
+    }
   };
 
   const handleDeleteStudent = (studentId: string) => {
@@ -174,7 +183,7 @@ export default function HomePage() {
               Academic Administration Dashboard
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Monitor student enrollments, curriculum subjects, and academic performance.
+              Monitor student enrollments, curriculum subjects, course payments, and scannable student ID passes.
             </p>
           </div>
 
@@ -251,6 +260,10 @@ export default function HomePage() {
                 setViewingStudent(student);
               }}
               onDeleteStudent={handleDeleteStudent}
+              onShowQr={(student) => {
+                setQrStudent(student);
+                setIsNewStudentQr(false);
+              }}
             />
           </TabsContent>
 
@@ -283,7 +296,7 @@ export default function HomePage() {
                     Administrative Quick Setup
                   </CardTitle>
                   <CardDescription>
-                    Configure new student accounts and curriculum subjects in a few clicks.
+                    Configure new student accounts with automatic QR pass generation and curriculum subjects in a few clicks.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -293,20 +306,21 @@ export default function HomePage() {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-foreground text-sm">
-                        Register New Student
+                        Register New Student & Issue QR Pass
                       </h4>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Add a student profile with email, personal details, and assign their starting courses.
+                        Add a student profile with payment status, assign courses, and instantly generate their scannable phone QR code pass.
                       </p>
                       <Button
                         size="sm"
-                        className="mt-3 text-xs"
+                        className="mt-3 text-xs gap-1.5"
                         onClick={() => {
                           setEditingStudent(null);
                           setIsAddStudentOpen(true);
                         }}
                       >
-                        Launch Student Form
+                        <QrCode className="h-3.5 w-3.5" />
+                        Launch Student Form & QR
                       </Button>
                     </div>
                   </div>
@@ -320,7 +334,7 @@ export default function HomePage() {
                         Setup New Subject / Course
                       </h4>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Define course codes, lecture credits, assign instructors, and set classroom schedules.
+                        Define course codes, academic department, assign instructors, and weekly schedules.
                       </p>
                       <Button
                         size="sm"
@@ -379,7 +393,7 @@ export default function HomePage() {
                       All subjects verified active
                     </span>
                     <span className="font-semibold text-foreground">
-                      {subjects.reduce((sum, s) => sum + s.credits, 0)} Total Credits
+                      {subjects.length} Total Subjects Available
                     </span>
                   </div>
                 </CardContent>
@@ -421,6 +435,19 @@ export default function HomePage() {
           setEditingStudent(student);
           setIsAddStudentOpen(true);
         }}
+        onShowQr={(student) => {
+          setQrStudent(student);
+          setIsNewStudentQr(false);
+        }}
+      />
+
+      {/* Student Unique QR Code Pass Dialog */}
+      <StudentQrDialog
+        student={qrStudent}
+        subjects={subjects}
+        open={!!qrStudent}
+        onOpenChange={(open) => !open && setQrStudent(null)}
+        isNewlyCreated={isNewStudentQr}
       />
 
       {/* Add / Edit Subject Dialog */}

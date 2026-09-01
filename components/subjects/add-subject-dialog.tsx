@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookPlus, BookOpen, Clock, Building, User, Award } from "lucide-react";
+import { BookPlus, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddSubjectDialogProps {
@@ -35,9 +35,7 @@ export function AddSubjectDialog({
   const [name, setName] = React.useState("");
   const [department, setDepartment] = React.useState("Computer Science");
   const [teacher, setTeacher] = React.useState("");
-  const [credits, setCredits] = React.useState("3");
   const [schedule, setSchedule] = React.useState("");
-  const [room, setRoom] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -48,18 +46,14 @@ export function AddSubjectDialog({
         setName(initialData.name);
         setDepartment(initialData.department);
         setTeacher(initialData.teacher);
-        setCredits(initialData.credits.toString());
         setSchedule(initialData.schedule || "");
-        setRoom(initialData.room || "");
         setDescription(initialData.description || "");
       } else {
         setCode("");
         setName("");
         setDepartment("Computer Science");
         setTeacher("");
-        setCredits("3");
         setSchedule("Mon/Wed 10:00 - 11:30 AM");
-        setRoom("Lecture Hall A-1");
         setDescription("");
       }
       setErrors({});
@@ -85,9 +79,7 @@ export function AddSubjectDialog({
       name: name.trim(),
       department,
       teacher: teacher.trim(),
-      credits: parseInt(credits, 10) || 3,
       schedule: schedule.trim() || undefined,
-      room: room.trim() || undefined,
       description: description.trim() || undefined,
       createdAt: initialData?.createdAt || new Date().toISOString(),
     };
@@ -196,38 +188,6 @@ export function AddSubjectDialog({
                 className={errors.teacher ? "border-destructive" : ""}
               />
               {errors.teacher && <p className="text-xs text-destructive">{errors.teacher}</p>}
-            </div>
-
-            {/* Credits */}
-            <div className="space-y-1.5">
-              <Label htmlFor="credits" className="text-xs font-semibold">
-                Credit Hours
-              </Label>
-              <select
-                id="credits"
-                value={credits}
-                onChange={(e) => setCredits(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="1">1 Credit</option>
-                <option value="2">2 Credits</option>
-                <option value="3">3 Credits</option>
-                <option value="4">4 Credits</option>
-                <option value="5">5 Credits</option>
-              </select>
-            </div>
-
-            {/* Room */}
-            <div className="space-y-1.5">
-              <Label htmlFor="room" className="text-xs font-semibold">
-                Classroom / Lab
-              </Label>
-              <Input
-                id="room"
-                placeholder="e.g. Hall B-204"
-                value={room}
-                onChange={(e) => setRoom(e.target.value)}
-              />
             </div>
 
             {/* Schedule */}

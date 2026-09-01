@@ -26,14 +26,15 @@ import {
 import {
   Search,
   UserPlus,
-  Filter,
   Eye,
   Edit2,
   Trash2,
   AlertTriangle,
   GraduationCap,
-  Sparkles,
-  BookOpen,
+  QrCode,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,6 +46,7 @@ interface StudentTableProps {
   onEditStudent: (student: Student) => void;
   onViewStudent: (student: Student) => void;
   onDeleteStudent: (studentId: string) => void;
+  onShowQr: (student: Student) => void;
 }
 
 export function StudentTable({
@@ -55,10 +57,12 @@ export function StudentTable({
   onEditStudent,
   onViewStudent,
   onDeleteStudent,
+  onShowQr,
 }: StudentTableProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [gradeFilter, setGradeFilter] = React.useState("ALL");
   const [statusFilter, setStatusFilter] = React.useState("ALL");
+  const [paymentFilter, setPaymentFilter] = React.useState("ALL");
   const [subjectFilter, setSubjectFilter] = React.useState("ALL");
 
   // Delete confirmation state
@@ -89,14 +93,18 @@ export function StudentTable({
       const matchesStatus =
         statusFilter === "ALL" || student.status === statusFilter;
 
+      // Payment filter
+      const matchesPayment =
+        paymentFilter === "ALL" || student.paymentStatus === paymentFilter;
+
       // Subject filter
       const matchesSubject =
         subjectFilter === "ALL" ||
         student.enrolledSubjectIds.includes(subjectFilter);
 
-      return matchesSearch && matchesGrade && matchesStatus && matchesSubject;
+      return matchesSearch && matchesGrade && matchesStatus && matchesPayment && matchesSubject;
     });
-  }, [students, searchTerm, gradeFilter, statusFilter, subjectFilter]);
+  }, [students, searchTerm, gradeFilter, statusFilter, paymentFilter, subjectFilter]);
 
   const confirmDelete = () => {
     if (studentToDelete) {
@@ -118,6 +126,31 @@ export function StudentTable({
         return <Badge variant="info">Graduated</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getPaymentBadge = (payment: Student["paymentStatus"]) => {
+    switch (payment) {
+      case "Paid":
+        return (
+          <Badge variant="success" className="text-[11px] gap-1 font-semibold">
+            <CheckCircle2 className="h-3 w-3" /> Paid
+          </Badge>
+        );
+      case "Pending":
+        return (
+          <Badge variant="warning" className="text-[11px] gap-1 font-semibold">
+            <Clock className="h-3 w-3" /> Pending
+          </Badge>
+        );
+      case "Overdue":
+        return (
+          <Badge variant="destructive" className="text-[11px] gap-1 font-semibold">
+            <AlertCircle className="h-3 w-3" /> Overdue
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{payment || "Paid"}</Badge>;
     }
   };
 
@@ -149,6 +182,18 @@ export function StudentTable({
             <option value="Grade 10">Grade 10</option>
             <option value="Grade 11">Grade 11</option>
             <option value="Grade 12">Grade 12</option>
+          </select>
+
+          {/* Payment Status filter */}
+          <select
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+            className="h-10 rounded-md border border-input bg-card px-3 text-xs font-medium shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="ALL">All Payments</option>
+            <option value="Paid">Fee: Paid</option>
+            <option value="Pending">Fee: Pending</option>
+            <option value="Overdue">Fee: Overdue</option>
           </select>
 
           {/* Status filter */}
@@ -191,11 +236,11 @@ export function StudentTable({
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[260px]">Student Profile</TableHead>
+              <TableHead className="w-[250px]">Student Profile</TableHead>
               <TableHead>Student ID</TableHead>
               <TableHead>Grade Level</TableHead>
-              <TableHead className="min-w-[200px]">Enrolled Subjects</TableHead>
-              <TableHead>GPA</TableHead>
+              <TableHead className="min-w-[180px]">Enrolled Subjects</TableHead>
+              <TableHead>Month Fee</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right pr-6">Actions</TableHead>
             </TableRow>
@@ -224,17 +269,17 @@ export function StudentTable({
                     <div className="flex gap-1">
                       <Skeleton className="h-5 w-14 rounded" />
                       <Skeleton className="h-5 w-14 rounded" />
-                      <Skeleton className="h-5 w-10 rounded" />
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-10" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-16 rounded-full" />
                   </TableCell>
                   <TableCell className="text-right pr-6">
                     <div className="flex items-center justify-end gap-1">
+                      <Skeleton className="h-8 w-8 rounded-md" />
                       <Skeleton className="h-8 w-8 rounded-md" />
                       <Skeleton className="h-8 w-8 rounded-md" />
                       <Skeleton className="h-8 w-8 rounded-md" />
@@ -249,11 +294,11 @@ export function StudentTable({
                     <GraduationCap className="h-10 w-10 mb-2 opacity-40" />
                     <p className="font-semibold text-foreground">No students found</p>
                     <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                      {searchTerm || gradeFilter !== "ALL" || statusFilter !== "ALL" || subjectFilter !== "ALL"
+                      {searchTerm || gradeFilter !== "ALL" || statusFilter !== "ALL" || paymentFilter !== "ALL" || subjectFilter !== "ALL"
                         ? "Try adjusting your search query or filters to find what you're looking for."
                         : "No students have been registered yet. Click 'Add Student' to get started."}
                     </p>
-                    {(searchTerm || gradeFilter !== "ALL" || statusFilter !== "ALL" || subjectFilter !== "ALL") && (
+                    {(searchTerm || gradeFilter !== "ALL" || statusFilter !== "ALL" || paymentFilter !== "ALL" || subjectFilter !== "ALL") && (
                       <Button
                         variant="link"
                         size="sm"
@@ -262,6 +307,7 @@ export function StudentTable({
                           setSearchTerm("");
                           setGradeFilter("ALL");
                           setStatusFilter("ALL");
+                          setPaymentFilter("ALL");
                           setSubjectFilter("ALL");
                         }}
                       >
@@ -339,12 +385,8 @@ export function StudentTable({
                       </div>
                     </TableCell>
 
-                    {/* GPA */}
-                    <TableCell>
-                      <span className="text-sm font-semibold">
-                        {student.gpa ? student.gpa.toFixed(2) : "—"}
-                      </span>
-                    </TableCell>
+                    {/* Month Fee Status */}
+                    <TableCell>{getPaymentBadge(student.paymentStatus)}</TableCell>
 
                     {/* Status */}
                     <TableCell>{getStatusBadge(student.status)}</TableCell>
@@ -352,6 +394,18 @@ export function StudentTable({
                     {/* Actions */}
                     <TableCell className="text-right pr-6">
                       <div className="flex items-center justify-end gap-1">
+                        {/* QR Code Pass Trigger */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => onShowQr(student)}
+                          title="View / Scan Student QR Code Pass"
+                        >
+                          <QrCode className="h-4 w-4" />
+                          <span className="sr-only">QR Code</span>
+                        </Button>
+
                         <Button
                           variant="ghost"
                           size="icon"

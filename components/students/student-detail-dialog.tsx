@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,10 +19,11 @@ import {
   Calendar,
   BookOpen,
   GraduationCap,
-  Award,
   CheckCircle2,
-  AlertCircle,
   Clock,
+  CreditCard,
+  QrCode,
+  AlertCircle,
 } from "lucide-react";
 
 interface StudentDetailDialogProps {
@@ -32,6 +32,7 @@ interface StudentDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: (student: Student) => void;
+  onShowQr?: (student: Student) => void;
 }
 
 export function StudentDetailDialog({
@@ -40,6 +41,7 @@ export function StudentDetailDialog({
   open,
   onOpenChange,
   onEdit,
+  onShowQr,
 }: StudentDetailDialogProps) {
   if (!student) return null;
 
@@ -69,6 +71,31 @@ export function StudentDetailDialog({
     }
   };
 
+  const getPaymentBadge = (payment: Student["paymentStatus"]) => {
+    switch (payment) {
+      case "Paid":
+        return (
+          <Badge variant="success" className="gap-1 font-semibold">
+            <CheckCircle2 className="h-3.5 w-3.5" /> Fee Paid
+          </Badge>
+        );
+      case "Pending":
+        return (
+          <Badge variant="warning" className="gap-1 font-semibold">
+            <Clock className="h-3.5 w-3.5" /> Fee Pending
+          </Badge>
+        );
+      case "Overdue":
+        return (
+          <Badge variant="destructive" className="gap-1 font-semibold">
+            <AlertCircle className="h-3.5 w-3.5" /> Fee Overdue
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{payment || "Paid"}</Badge>;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -91,26 +118,51 @@ export function StudentDetailDialog({
                 </div>
               </div>
             </div>
+
+            {onShowQr && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs text-primary border-primary/30 hover:bg-primary/10"
+                onClick={() => {
+                  onOpenChange(false);
+                  onShowQr(student);
+                }}
+              >
+                <QrCode className="h-4 w-4" />
+                View QR Pass
+              </Button>
+            )}
           </div>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          {/* Quick Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {/* Quick Metrics Grid with Payment Status & Attendance */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Monthly Payment Status Card */}
             <div className="p-3 rounded-lg bg-muted/50 border border-border">
-              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1">
-                <Award className="h-3.5 w-3.5 text-amber-500" />
-                Cumulative GPA
+              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                <CreditCard className="h-3.5 w-3.5 text-emerald-500" />
+                Fee Payment ({student.paymentMonth || "Current Month"})
               </div>
-              <div className="text-lg font-bold text-foreground">
-                {student.gpa ? student.gpa.toFixed(2) : "N/A"}{" "}
-                <span className="text-xs font-normal text-muted-foreground">/ 4.00</span>
+              <div className="flex items-center justify-between">
+                <div>{getPaymentBadge(student.paymentStatus)}</div>
+                {student.monthlyFeeAmount && (
+                  <span className="text-xs font-bold text-foreground">
+                    ${student.monthlyFeeAmount}
+                  </span>
+                )}
               </div>
+              {student.lastPaymentDate && student.paymentStatus === "Paid" && (
+                <div className="text-[10px] text-muted-foreground mt-1">
+                  Paid on: {student.lastPaymentDate}
+                </div>
+              )}
             </div>
 
             <div className="p-3 rounded-lg bg-muted/50 border border-border">
-              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
                 Attendance Rate
               </div>
               <div className="text-lg font-bold text-foreground">
@@ -118,9 +170,9 @@ export function StudentDetailDialog({
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-muted/50 border border-border col-span-2 sm:col-span-1">
-              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1">
-                <BookOpen className="h-3.5 w-3.5 text-blue-500" />
+            <div className="p-3 rounded-lg bg-muted/50 border border-border">
+              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                <BookOpen className="h-3.5 w-3.5 text-purple-500" />
                 Enrolled Subjects
               </div>
               <div className="text-lg font-bold text-foreground">
@@ -203,9 +255,6 @@ export function StudentDetailDialog({
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" /> {sub.schedule || "TBA"}
                       </span>
-                      <Badge variant="outline" className="text-[11px]">
-                        {sub.credits} Credits
-                      </Badge>
                     </div>
                   </div>
                 ))}

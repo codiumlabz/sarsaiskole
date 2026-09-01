@@ -13,14 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { UserPlus, UserCheck, BookOpen, Check } from "lucide-react";
+import { UserPlus, UserCheck, BookOpen, Check, CreditCard, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddStudentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaveStudent: (student: Student) => void;
+  onSaveStudent: (student: Student, isNew: boolean) => void;
   subjects: Subject[];
   initialData?: Student | null;
 }
@@ -43,7 +42,10 @@ export function AddStudentDialog({
   const [phone, setPhone] = React.useState("");
   const [dateOfBirth, setDateOfBirth] = React.useState("");
   const [address, setAddress] = React.useState("");
-  const [gpa, setGpa] = React.useState("3.80");
+  const [paymentStatus, setPaymentStatus] = React.useState<Student["paymentStatus"]>("Paid");
+  const [monthlyFeeAmount, setMonthlyFeeAmount] = React.useState("180");
+  const [paymentMonth, setPaymentMonth] = React.useState("September 2026");
+  const [lastPaymentDate, setLastPaymentDate] = React.useState("");
   const [selectedSubjectIds, setSelectedSubjectIds] = React.useState<string[]>([]);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -60,7 +62,10 @@ export function AddStudentDialog({
         setPhone(initialData.phone || "");
         setDateOfBirth(initialData.dateOfBirth || "");
         setAddress(initialData.address || "");
-        setGpa(initialData.gpa ? initialData.gpa.toString() : "3.80");
+        setPaymentStatus(initialData.paymentStatus || "Paid");
+        setMonthlyFeeAmount(initialData.monthlyFeeAmount ? initialData.monthlyFeeAmount.toString() : "180");
+        setPaymentMonth(initialData.paymentMonth || "September 2026");
+        setLastPaymentDate(initialData.lastPaymentDate || "");
         setSelectedSubjectIds(initialData.enrolledSubjectIds || []);
       } else {
         // New student default
@@ -74,7 +79,10 @@ export function AddStudentDialog({
         setPhone("+1 (555) ");
         setDateOfBirth("2009-05-15");
         setAddress("");
-        setGpa("3.75");
+        setPaymentStatus("Paid");
+        setMonthlyFeeAmount("180");
+        setPaymentMonth("September 2026");
+        setLastPaymentDate(new Date().toISOString().split("T")[0]);
         // default select first 2 subjects if available
         setSelectedSubjectIds(subjects.slice(0, 2).map((s) => s.id));
       }
@@ -116,13 +124,16 @@ export function AddStudentDialog({
       phone: phone.trim() || undefined,
       dateOfBirth: dateOfBirth || undefined,
       address: address.trim() || undefined,
-      gpa: parseFloat(gpa) || 3.5,
       attendanceRate: initialData?.attendanceRate || 95,
+      paymentStatus,
+      monthlyFeeAmount: parseFloat(monthlyFeeAmount) || 180,
+      paymentMonth: paymentMonth.trim() || "September 2026",
+      lastPaymentDate: paymentStatus === "Paid" ? (lastPaymentDate || new Date().toISOString().split("T")[0]) : undefined,
       enrolledSubjectIds: selectedSubjectIds,
       createdAt: initialData?.createdAt || new Date().toISOString(),
     };
 
-    onSaveStudent(studentToSave);
+    onSaveStudent(studentToSave, !isEditing);
     toast.success(
       isEditing
         ? `Student ${studentToSave.name} updated successfully!`
@@ -145,8 +156,8 @@ export function AddStudentDialog({
               </DialogTitle>
               <DialogDescription>
                 {isEditing
-                  ? "Update the student's profile details and subject enrollments."
-                  : "Enter the details to register a new student in the system."}
+                  ? "Update the student's profile details, course enrollments, and payment status."
+                  : "Enter the details to register a new student and generate their unique verification QR pass."}
               </DialogDescription>
             </div>
           </div>
@@ -277,21 +288,6 @@ export function AddStudentDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="gpa" className="text-xs font-semibold">
-                Initial GPA (0.00 - 4.00)
-              </Label>
-              <Input
-                id="gpa"
-                type="number"
-                step="0.01"
-                min="0"
-                max="4"
-                value={gpa}
-                onChange={(e) => setGpa(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="address" className="text-xs font-semibold">
                 Residential Address
               </Label>
@@ -304,12 +300,69 @@ export function AddStudentDialog({
             </div>
           </div>
 
+          {/* Section: Monthly Course Payment Setup */}
+          <div className="pt-3 border-t border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold flex items-center gap-1.5 text-foreground">
+                <CreditCard className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                Course Payment Status (Current Month)
+              </Label>
+              <span className="text-[11px] text-muted-foreground font-mono">
+                {paymentMonth}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-muted/20 rounded-xl border border-border">
+              <div className="space-y-1.5">
+                <Label htmlFor="paymentStatus" className="text-xs font-medium">
+                  Payment Status
+                </Label>
+                <select
+                  id="paymentStatus"
+                  value={paymentStatus}
+                  onChange={(e) => setPaymentStatus(e.target.value as Student["paymentStatus"])}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="Paid">Paid (Current Month)</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="monthlyFee" className="text-xs font-medium">
+                  Monthly Fee ($ / Amount)
+                </Label>
+                <Input
+                  id="monthlyFee"
+                  type="number"
+                  placeholder="180"
+                  value={monthlyFeeAmount}
+                  onChange={(e) => setMonthlyFeeAmount(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="paymentDate" className="text-xs font-medium">
+                  Payment / Settlement Date
+                </Label>
+                <Input
+                  id="paymentDate"
+                  type="date"
+                  value={lastPaymentDate}
+                  onChange={(e) => setLastPaymentDate(e.target.value)}
+                  disabled={paymentStatus !== "Paid"}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Section: Assign Subjects Setup */}
           <div className="pt-2 border-t border-border space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-semibold flex items-center gap-1.5">
                 <BookOpen className="h-4 w-4 text-primary" />
-                Assign Subjects ({selectedSubjectIds.length} selected)
+                Assign Enrolled Subjects ({selectedSubjectIds.length} selected)
               </Label>
               <span className="text-[11px] text-muted-foreground">
                 Select courses for this student
@@ -344,7 +397,7 @@ export function AddStudentDialog({
                         <span className="font-semibold truncate text-foreground">{sub.name}</span>
                       </div>
                       <div className="text-[11px] text-muted-foreground truncate">
-                        {sub.teacher} • {sub.credits} credits
+                        {sub.teacher} • {sub.department}
                       </div>
                     </div>
                   </div>
@@ -362,7 +415,7 @@ export function AddStudentDialog({
               Cancel
             </Button>
             <Button type="submit">
-              {isEditing ? "Save Changes" : "Register Student"}
+              {isEditing ? "Save Changes" : "Register Student & Generate QR"}
             </Button>
           </DialogFooter>
         </form>

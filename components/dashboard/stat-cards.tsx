@@ -4,7 +4,7 @@ import * as React from "react";
 import { Student, Subject } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, BookOpen, UserCheck, Award, TrendingUp } from "lucide-react";
+import { Users, BookOpen, UserCheck, Layers, TrendingUp } from "lucide-react";
 
 interface StatCardsProps {
   students: Student[];
@@ -34,10 +34,12 @@ export function StatCards({ students, subjects, isLoading }: StatCardsProps) {
   const activeStudents = students.filter((s) => s.status === "Active").length;
   const totalSubjects = subjects.length;
 
-  const validGpas = students.filter((s) => typeof s.gpa === "number" && s.gpa > 0);
-  const avgGpa = validGpas.length
-    ? (validGpas.reduce((acc, s) => acc + (s.gpa || 0), 0) / validGpas.length).toFixed(2)
-    : "3.75";
+  const totalEnrollments = students.reduce(
+    (acc, s) => acc + (s.enrolledSubjectIds?.length || 0),
+    0
+  );
+
+  const uniqueDepartments = new Set(subjects.map((s) => s.department)).size;
 
   const stats = [
     {
@@ -52,7 +54,7 @@ export function StatCards({ students, subjects, isLoading }: StatCardsProps) {
     {
       title: "Active Status Rate",
       value: totalStudents > 0 ? `${Math.round((activeStudents / totalStudents) * 100)}%` : "0%",
-      subtext: `${students.filter(s => s.status !== "Active").length} inactive/graduated`,
+      subtext: `${students.filter((s) => s.status !== "Active").length} inactive/graduated`,
       icon: UserCheck,
       color: "text-emerald-600 dark:text-emerald-400",
       bgColor: "bg-emerald-500/10",
@@ -61,20 +63,20 @@ export function StatCards({ students, subjects, isLoading }: StatCardsProps) {
     {
       title: "Curriculum Subjects",
       value: totalSubjects.toString(),
-      subtext: "Across 4 departments",
+      subtext: `Across ${uniqueDepartments || 4} departments`,
       icon: BookOpen,
       color: "text-purple-600 dark:text-purple-400",
       bgColor: "bg-purple-500/10",
       badge: "Fully accredited",
     },
     {
-      title: "Average Student GPA",
-      value: avgGpa,
-      subtext: "Scale of 4.00",
-      icon: Award,
+      title: "Total Course Enrollments",
+      value: totalEnrollments.toString(),
+      subtext: "Assigned class seats",
+      icon: Layers,
       color: "text-amber-600 dark:text-amber-400",
       bgColor: "bg-amber-500/10",
-      badge: "Honor range",
+      badge: "Active courses",
     },
   ];
 
