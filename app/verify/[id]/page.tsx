@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Student, Subject } from "@/types";
 import { getStoredStudents, getStoredSubjects } from "@/lib/storage";
 import { initialStudents, initialSubjects } from "@/lib/mock-data";
+import { fetchStudentByIdFromDB, fetchSubjectsFromDB } from "@/lib/supabase/db";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,23 +50,46 @@ export default function StudentVerificationPage() {
       minute: "2-digit",
     }));
 
-    // Find student in localStorage or fallback mock data
-    const storedStudents = getStoredStudents();
-    const storedSubjects = getStoredSubjects();
+    async function loadVerificationData() {
+      // 1. Try Supabase if configured
+      if (isSupabaseConfigured()) {
+        try {
+          const [dbStudent, dbSubjects] = await Promise.all([
+            fetchStudentByIdFromDB(studentIdParam),
+            fetchSubjectsFromDB(),
+          ]);
 
-    const allStudents = storedStudents.length ? storedStudents : initialStudents;
-    const allSubjects = storedSubjects.length ? storedSubjects : initialSubjects;
+          if (dbStudent) {
+            setStudent(dbStudent);
+            setSubjects(dbSubjects && dbSubjects.length > 0 ? dbSubjects : initialSubjects);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.warn("Supabase verification load error, falling back to local:", e);
+        }
+      }
 
-    setSubjects(allSubjects);
+      // 2. Fallback to localStorage or mock demo data
+      const storedStudents = getStoredStudents();
+      const storedSubjects = getStoredSubjects();
 
-    const foundStudent = allStudents.find(
-      (s) =>
-        s.id === studentIdParam ||
-        s.studentId?.toLowerCase() === studentIdParam?.toLowerCase()
-    );
+      const allStudents = storedStudents.length ? storedStudents : initialStudents;
+      const allSubjects = storedSubjects.length ? storedSubjects : initialSubjects;
 
-    setStudent(foundStudent || null);
-    setIsLoading(false);
+      setSubjects(allSubjects);
+
+      const foundStudent = allStudents.find(
+        (s) =>
+          s.id === studentIdParam ||
+          s.studentId?.toLowerCase() === studentIdParam?.toLowerCase()
+      );
+
+      setStudent(foundStudent || null);
+      setIsLoading(false);
+    }
+
+    loadVerificationData();
   }, [studentIdParam]);
 
   if (isLoading) {

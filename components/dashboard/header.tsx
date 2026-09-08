@@ -11,6 +11,7 @@ import {
   Sparkles,
   RotateCcw,
   UserCheck,
+  Database,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,12 +19,14 @@ interface HeaderProps {
   onResetData: () => void;
   isLoading: boolean;
   onToggleLoadingSim: () => void;
+  dbStatus?: "connected" | "disconnected" | "checking";
 }
 
 export function DashboardHeader({
   onResetData,
   isLoading,
   onToggleLoadingSim,
+  dbStatus = "disconnected",
 }: HeaderProps) {
   const { user, logout } = useAuth();
 
@@ -57,6 +60,17 @@ export function DashboardHeader({
               <span className="hidden sm:inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                 Admin
               </span>
+              {dbStatus === "connected" ? (
+                <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" title="Connected to Supabase PostgreSQL Database">
+                  <Database className="h-3 w-3" />
+                  Supabase Live
+                </span>
+              ) : (
+                <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" title="Running in Local Cache Mode. Add Supabase keys to .env.local to connect.">
+                  <Database className="h-3 w-3" />
+                  Local Mode
+                </span>
+              )}
             </div>
             <p className="text-xs text-muted-foreground hidden sm:block">
               Student Information & Subject Management System

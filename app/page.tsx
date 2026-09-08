@@ -6,10 +6,17 @@ import { Student, Subject } from "@/types";
 import {
   getStoredStudents,
   getStoredSubjects,
+  loadStudentsAsync,
+  loadSubjectsAsync,
+  persistStudent,
+  removeStudent,
+  persistSubject,
+  removeSubject,
   saveStudents,
-  saveSubjects,
   resetToDemoData,
 } from "@/lib/storage";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { testSupabaseConnection } from "@/lib/supabase/db";
 
 import { LoginCard } from "@/components/auth/login-card";
 import { DashboardHeader } from "@/components/dashboard/header";
@@ -43,6 +50,7 @@ export default function HomePage() {
   const [students, setStudents] = React.useState<Student[]>([]);
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
   const [isDataLoading, setIsDataLoading] = React.useState<boolean>(true);
+  const [dbStatus, setDbStatus] = React.useState<"connected" | "disconnected">("disconnected");
 
   // Active tab state
   const [activeTab, setActiveTab] = React.useState<string>("students");
@@ -60,20 +68,44 @@ export default function HomePage() {
   const [isAddSubjectOpen, setIsAddSubjectOpen] = React.useState<boolean>(false);
   const [editingSubject, setEditingSubject] = React.useState<Subject | null>(null);
 
-  // Load Initial Data from Storage
+  // Load Initial Data from Storage / Supabase
   React.useEffect(() => {
     if (isAuthenticated) {
       setIsDataLoading(true);
+      // Instant cache display
       const loadedStudents = getStoredStudents();
       const loadedSubjects = getStoredSubjects();
       setStudents(loadedStudents);
       setSubjects(loadedSubjects);
 
-      // Brief loading skeleton state for UX
-      const timer = setTimeout(() => {
-        setIsDataLoading(false);
-      }, 500);
-      return () => clearTimeout(timer);
+      // Async fetch from Supabase if configured
+      if (isSupabaseConfigured()) {
+        Promise.all([
+          loadStudentsAsync(),
+          loadSubjectsAsync(),
+          testSupabaseConnection(),
+        ])
+          .then(([stuRes, subRes, connRes]) => {
+            if (connRes.connected) {
+              setDbStatus("connected");
+              if (stuRes.students.length > 0) setStudents(stuRes.students);
+              if (subRes.subjects.length > 0) setSubjects(subRes.subjects);
+            } else {
+              setDbStatus("disconnected");
+            }
+            setIsDataLoading(false);
+          })
+          .catch(() => {
+            setDbStatus("disconnected");
+            setIsDataLoading(false);
+          });
+      } else {
+        setDbStatus("disconnected");
+        const timer = setTimeout(() => {
+          setIsDataLoading(false);
+        }, 400);
+        return () => clearTimeout(timer);
+      }
     }
   }, [isAuthenticated]);
 
@@ -97,19 +129,18 @@ export default function HomePage() {
   };
 
   // Student Operations
-  const handleSaveStudent = (studentData: Student, isNew: boolean) => {
-    setStudents((prev) => {
-      const exists = prev.some((s) => s.id === studentData.id);
-      let updated: Student[];
-      if (exists) {
-        updated = prev.map((s) => (s.id === studentData.id ? studentData : s));
-      } else {
-        updated = [studentData, ...prev];
-      }
-      saveStudents(updated);
-      return updated;
-    });
+  const handleSaveStudent = async (studentData: Student, isNew: boolean) => {
+    const exists = students.some((s) => s.id === studentData.id);
+    let updated: Student[];
+    if (exists) {
+      updated = students.map((s) => (s.id === studentData.id ? studentData : s));
+    } else {
+      updated = [studentData, ...students];
+    }
+    setStudents(updated);
     setEditingStudent(null);
+
+    await persistStudent(studentData, updated);
 
     // Automatically open the unique QR code dialog when a new student is added!
     if (isNew) {
@@ -118,46 +149,39 @@ export default function HomePage() {
     }
   };
 
-  const handleDeleteStudent = (studentId: string) => {
-    setStudents((prev) => {
-      const updated = prev.filter((s) => s.id !== studentId);
-      saveStudents(updated);
-      return updated;
-    });
+  const handleDeleteStudent = async (studentId: string) => {
+    const updated = students.filter((s) => s.id !== studentId);
+    setStudents(updated);
+    await removeStudent(studentId, updated);
   };
 
   // Subject Operations
-  const handleSaveSubject = (subjectData: Subject) => {
-    setSubjects((prev) => {
-      const exists = prev.some((sub) => sub.id === subjectData.id);
-      let updated: Subject[];
-      if (exists) {
-        updated = prev.map((s) => (s.id === subjectData.id ? subjectData : s));
-      } else {
-        updated = [subjectData, ...prev];
-      }
-      saveSubjects(updated);
-      return updated;
-    });
+  const handleSaveSubject = async (subjectData: Subject) => {
+    const exists = subjects.some((sub) => sub.id === subjectData.id);
+    let updated: Subject[];
+    if (exists) {
+      updated = subjects.map((s) => (s.id === subjectData.id ? subjectData : s));
+    } else {
+      updated = [subjectData, ...subjects];
+    }
+    setSubjects(updated);
     setEditingSubject(null);
+
+    await persistSubject(subjectData, updated);
   };
 
-  const handleDeleteSubject = (subjectId: string) => {
+  const handleDeleteSubject = async (subjectId: string) => {
     // Remove subject from all students who had it enrolled
-    setStudents((prevStudents) => {
-      const updatedStudents = prevStudents.map((stu) => ({
-        ...stu,
-        enrolledSubjectIds: stu.enrolledSubjectIds.filter((id) => id !== subjectId),
-      }));
-      saveStudents(updatedStudents);
-      return updatedStudents;
-    });
+    const updatedStudents = students.map((stu) => ({
+      ...stu,
+      enrolledSubjectIds: stu.enrolledSubjectIds.filter((id) => id !== subjectId),
+    }));
+    setStudents(updatedStudents);
+    saveStudents(updatedStudents);
 
-    setSubjects((prev) => {
-      const updated = prev.filter((s) => s.id !== subjectId);
-      saveSubjects(updated);
-      return updated;
-    });
+    const updatedSubjects = subjects.filter((s) => s.id !== subjectId);
+    setSubjects(updatedSubjects);
+    await removeSubject(subjectId, updatedSubjects);
   };
 
   // Render Login Card if not authenticated
@@ -172,6 +196,7 @@ export default function HomePage() {
         onResetData={handleResetData}
         isLoading={isDataLoading}
         onToggleLoadingSim={handleToggleLoadingSim}
+        dbStatus={dbStatus}
       />
 
       {/* Main Container */}
