@@ -287,13 +287,13 @@ export function SubjectManager({
                 {subjectToDelete?.code} - {subjectToDelete?.name}
               </strong>
               ?
-              {subjectToDelete && (enrolledCountMap.get(subjectToDelete.id) || 0) > 0 && (
-                <div className="mt-2 p-2.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-xs">
-                  <strong>Warning:</strong> {enrolledCountMap.get(subjectToDelete.id)} students are
-                  currently enrolled in this subject. Deleting it will remove the course from their schedule.
-                </div>
-              )}
             </DialogDescription>
+            {subjectToDelete && (enrolledCountMap.get(subjectToDelete.id) || 0) > 0 && (
+              <div className="mt-2 p-2.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-xs">
+                <strong>Warning:</strong> {enrolledCountMap.get(subjectToDelete.id)} students are
+                currently enrolled in this subject. Deleting it will remove the course from their schedule.
+              </div>
+            )}
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button
