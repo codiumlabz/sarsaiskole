@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Student, Subject } from "@/types";
+import { Student, Subject, CardType, PaymentStatus } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, UserCheck, BookOpen, Check, CreditCard, DollarSign } from "lucide-react";
+import { UserPlus, UserCheck, BookOpen, Check, CreditCard, Ticket } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddStudentDialogProps {
@@ -42,7 +42,8 @@ export function AddStudentDialog({
   const [phone, setPhone] = React.useState("");
   const [dateOfBirth, setDateOfBirth] = React.useState("");
   const [address, setAddress] = React.useState("");
-  const [paymentStatus, setPaymentStatus] = React.useState<Student["paymentStatus"]>("Paid");
+  const [cardType, setCardType] = React.useState<CardType>("Full Card");
+  const [paymentStatus, setPaymentStatus] = React.useState<PaymentStatus>("Paid");
   const [monthlyFeeAmount, setMonthlyFeeAmount] = React.useState("180");
   const [paymentMonth, setPaymentMonth] = React.useState("September 2026");
   const [lastPaymentDate, setLastPaymentDate] = React.useState("");
@@ -62,6 +63,7 @@ export function AddStudentDialog({
         setPhone(initialData.phone || "");
         setDateOfBirth(initialData.dateOfBirth || "");
         setAddress(initialData.address || "");
+        setCardType(initialData.cardType || "Full Card");
         setPaymentStatus(initialData.paymentStatus || "Paid");
         setMonthlyFeeAmount(initialData.monthlyFeeAmount ? initialData.monthlyFeeAmount.toString() : "180");
         setPaymentMonth(initialData.paymentMonth || "September 2026");
@@ -79,6 +81,7 @@ export function AddStudentDialog({
         setPhone("+1 (555) ");
         setDateOfBirth("2009-05-15");
         setAddress("");
+        setCardType("Full Card");
         setPaymentStatus("Paid");
         setMonthlyFeeAmount("180");
         setPaymentMonth("September 2026");
@@ -94,6 +97,19 @@ export function AddStudentDialog({
     setSelectedSubjectIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const handleCardTypeSelect = (newCardType: CardType) => {
+    setCardType(newCardType);
+    const subCount = selectedSubjectIds.length || 2;
+    const baseFee = Math.max(subCount * 60, 60);
+    if (newCardType === "Free Card") {
+      setMonthlyFeeAmount("0");
+    } else if (newCardType === "Half Card") {
+      setMonthlyFeeAmount((Math.round(baseFee / 2)).toString());
+    } else {
+      setMonthlyFeeAmount(baseFee.toString());
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -125,8 +141,9 @@ export function AddStudentDialog({
       dateOfBirth: dateOfBirth || undefined,
       address: address.trim() || undefined,
       attendanceRate: initialData?.attendanceRate || 95,
+      cardType,
       paymentStatus,
-      monthlyFeeAmount: parseFloat(monthlyFeeAmount) || 180,
+      monthlyFeeAmount: parseFloat(monthlyFeeAmount) || (cardType === "Free Card" ? 0 : 180),
       paymentMonth: paymentMonth.trim() || "September 2026",
       lastPaymentDate: paymentStatus === "Paid" ? (lastPaymentDate || new Date().toISOString().split("T")[0]) : undefined,
       enrolledSubjectIds: selectedSubjectIds,
@@ -305,11 +322,59 @@ export function AddStudentDialog({
             <div className="flex items-center justify-between">
               <Label className="text-xs font-semibold flex items-center gap-1.5 text-foreground">
                 <CreditCard className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                Course Payment Status (Current Month)
+                Monthly Class Fee & Card Setup
               </Label>
               <span className="text-[11px] text-muted-foreground font-mono">
                 {paymentMonth}
               </span>
+            </div>
+
+            {/* Card Type Selection */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium flex items-center gap-1">
+                <Ticket className="h-3.5 w-3.5 text-primary" />
+                Class Card Type (Concession)
+              </Label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleCardTypeSelect("Full Card")}
+                  className={`p-2 rounded-lg border text-left transition-all ${
+                    cardType === "Full Card"
+                      ? "border-blue-500 bg-blue-500/10 text-blue-900 dark:text-blue-200 font-semibold ring-1 ring-blue-500"
+                      : "border-border hover:bg-muted text-muted-foreground text-xs"
+                  }`}
+                >
+                  <div className="text-xs">Full Card</div>
+                  <div className="text-[10px] text-muted-foreground">Standard Fee</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleCardTypeSelect("Half Card")}
+                  className={`p-2 rounded-lg border text-left transition-all ${
+                    cardType === "Half Card"
+                      ? "border-amber-500 bg-amber-500/10 text-amber-900 dark:text-amber-200 font-semibold ring-1 ring-amber-500"
+                      : "border-border hover:bg-muted text-muted-foreground text-xs"
+                  }`}
+                >
+                  <div className="text-xs">Half Card</div>
+                  <div className="text-[10px] text-muted-foreground">50% Concession</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleCardTypeSelect("Free Card")}
+                  className={`p-2 rounded-lg border text-left transition-all ${
+                    cardType === "Free Card"
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200 font-semibold ring-1 ring-emerald-500"
+                      : "border-border hover:bg-muted text-muted-foreground text-xs"
+                  }`}
+                >
+                  <div className="text-xs">Free Card</div>
+                  <div className="text-[10px] text-muted-foreground">100% Free</div>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-muted/20 rounded-xl border border-border">
@@ -320,11 +385,12 @@ export function AddStudentDialog({
                 <select
                   id="paymentStatus"
                   value={paymentStatus}
-                  onChange={(e) => setPaymentStatus(e.target.value as Student["paymentStatus"])}
+                  onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
                   className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 >
-                  <option value="Paid">Paid (Current Month)</option>
+                  <option value="Paid">Paid (Settled)</option>
                   <option value="Pending">Pending</option>
+                  <option value="Unpaid">Not Paid</option>
                   <option value="Overdue">Overdue</option>
                 </select>
               </div>
@@ -339,6 +405,7 @@ export function AddStudentDialog({
                   placeholder="180"
                   value={monthlyFeeAmount}
                   onChange={(e) => setMonthlyFeeAmount(e.target.value)}
+                  disabled={cardType === "Free Card"}
                 />
               </div>
 

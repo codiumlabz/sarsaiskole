@@ -143,6 +143,12 @@ export function StudentTable({
             <Clock className="h-3 w-3" /> Pending
           </Badge>
         );
+      case "Unpaid":
+        return (
+          <Badge className="bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30 text-[11px] gap-1 font-semibold">
+            <AlertCircle className="h-3 w-3 text-orange-500" /> Not Paid
+          </Badge>
+        );
       case "Overdue":
         return (
           <Badge variant="destructive" className="text-[11px] gap-1 font-semibold">
@@ -193,6 +199,7 @@ export function StudentTable({
             <option value="ALL">All Payments</option>
             <option value="Paid">Fee: Paid</option>
             <option value="Pending">Fee: Pending</option>
+            <option value="Unpaid">Fee: Not Paid</option>
             <option value="Overdue">Fee: Overdue</option>
           </select>
 
@@ -386,7 +393,23 @@ export function StudentTable({
                     </TableCell>
 
                     {/* Month Fee Status */}
-                    <TableCell>{getPaymentBadge(student.paymentStatus)}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div>{getPaymentBadge(student.paymentStatus)}</div>
+                        <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
+                          <span
+                            className={`inline-block w-1.5 h-1.5 rounded-full ${
+                              student.cardType === "Half Card"
+                                ? "bg-amber-500"
+                                : student.cardType === "Free Card"
+                                ? "bg-emerald-500"
+                                : "bg-blue-500"
+                            }`}
+                          />
+                          <span>{student.cardType || "Full Card"}</span>
+                        </div>
+                      </div>
+                    </TableCell>
 
                     {/* Status */}
                     <TableCell>{getStatusBadge(student.status)}</TableCell>

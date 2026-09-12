@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Student, Subject } from "@/types";
+import { Student, Subject, CardType } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
   CreditCard,
   BookOpen,
   ShieldCheck,
-  Printer,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -103,6 +103,12 @@ export function StudentQrDialog({
             Payment Pending
           </Badge>
         );
+      case "Unpaid":
+        return (
+          <Badge className="bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30 gap-1 font-semibold">
+            <AlertCircle className="h-3 w-3 text-orange-500" /> Not Paid
+          </Badge>
+        );
       case "Overdue":
         return (
           <Badge variant="destructive" className="gap-1 font-semibold">
@@ -149,7 +155,12 @@ export function StudentQrDialog({
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-bold text-sm text-foreground">{student.name}</h4>
-                <p className="text-xs font-mono text-muted-foreground">{student.studentId} • {student.grade}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-xs font-mono text-muted-foreground">{student.studentId} • {student.grade}</span>
+                  <Badge className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-primary/20">
+                    {student.cardType || "Full Card"}
+                  </Badge>
+                </div>
               </div>
               <div>{getPaymentBadge()}</div>
             </div>

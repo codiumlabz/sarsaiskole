@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Student, Subject } from "@/types";
+import { Student, Subject, CardType } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import {
   CreditCard,
   QrCode,
   AlertCircle,
+  Ticket,
 } from "lucide-react";
 
 interface StudentDetailDialogProps {
@@ -71,6 +72,30 @@ export function StudentDetailDialog({
     }
   };
 
+  const getCardTypeBadge = (card?: CardType) => {
+    switch (card) {
+      case "Half Card":
+        return (
+          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 text-xs font-semibold gap-1">
+            <Ticket className="h-3 w-3 text-amber-500" /> Half Card (50%)
+          </Badge>
+        );
+      case "Free Card":
+        return (
+          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-xs font-semibold gap-1">
+            <Ticket className="h-3 w-3 text-emerald-500" /> Free Card
+          </Badge>
+        );
+      case "Full Card":
+      default:
+        return (
+          <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30 text-xs font-semibold gap-1">
+            <Ticket className="h-3 w-3 text-blue-500" /> Full Card
+          </Badge>
+        );
+    }
+  };
+
   const getPaymentBadge = (payment: Student["paymentStatus"]) => {
     switch (payment) {
       case "Paid":
@@ -83,6 +108,12 @@ export function StudentDetailDialog({
         return (
           <Badge variant="warning" className="gap-1 font-semibold">
             <Clock className="h-3.5 w-3.5" /> Fee Pending
+          </Badge>
+        );
+      case "Unpaid":
+        return (
+          <Badge className="bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30 gap-1 font-semibold">
+            <AlertCircle className="h-3.5 w-3.5 text-orange-500" /> Not Paid
           </Badge>
         );
       case "Overdue":
@@ -107,7 +138,7 @@ export function StudentDetailDialog({
               </Avatar>
               <div>
                 <DialogTitle className="text-xl font-bold">{student.name}</DialogTitle>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex flex-wrap items-center gap-2 mt-1">
                   <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
                     {student.studentId}
                   </span>
@@ -115,6 +146,7 @@ export function StudentDetailDialog({
                   <Badge variant="outline" className="text-xs">
                     {student.grade}
                   </Badge>
+                  {getCardTypeBadge(student.cardType)}
                 </div>
               </div>
             </div>
@@ -141,21 +173,30 @@ export function StudentDetailDialog({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Monthly Payment Status Card */}
             <div className="p-3 rounded-lg bg-muted/50 border border-border">
-              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1.5">
-                <CreditCard className="h-3.5 w-3.5 text-emerald-500" />
-                Fee Payment ({student.paymentMonth || "Current Month"})
+              <div className="text-xs text-muted-foreground flex items-center justify-between gap-1.5 mb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <CreditCard className="h-3.5 w-3.5 text-emerald-500" />
+                  Fee ({student.paymentMonth || "Current Month"})
+                </span>
+                <span className="text-[10px] font-semibold text-primary">
+                  {student.cardType || "Full Card"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div>{getPaymentBadge(student.paymentStatus)}</div>
-                {student.monthlyFeeAmount && (
-                  <span className="text-xs font-bold text-foreground">
+                {student.monthlyFeeAmount !== undefined && (
+                  <span className="text-sm font-bold text-foreground">
                     ${student.monthlyFeeAmount}
                   </span>
                 )}
               </div>
-              {student.lastPaymentDate && student.paymentStatus === "Paid" && (
+              {student.lastPaymentDate && student.paymentStatus === "Paid" ? (
                 <div className="text-[10px] text-muted-foreground mt-1">
                   Paid on: {student.lastPaymentDate}
+                </div>
+              ) : (
+                <div className="text-[10px] text-muted-foreground mt-1 italic">
+                  {student.paymentStatus === "Pending" ? "Pending clearance" : "Settlement pending"}
                 </div>
               )}
             </div>

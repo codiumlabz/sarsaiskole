@@ -27,6 +27,7 @@ import { StudentDetailDialog } from "@/components/students/student-detail-dialog
 import { StudentQrDialog } from "@/components/students/student-qr-dialog";
 import { SubjectManager } from "@/components/subjects/subject-manager";
 import { AddSubjectDialog } from "@/components/subjects/add-subject-dialog";
+import { PaymentManager } from "@/components/payments/payment-manager";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -40,6 +41,7 @@ import {
   UserPlus,
   CheckCircle2,
   QrCode,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -256,6 +258,10 @@ export default function HomePage() {
                 <Users className="h-4 w-4" />
                 <span>Students Directory ({students.length})</span>
               </TabsTrigger>
+              <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
+                <CreditCard className="h-4 w-4" />
+                <span>Monthly Class Fees & Cards</span>
+              </TabsTrigger>
               <TabsTrigger value="subjects" className="gap-2 text-xs sm:text-sm">
                 <BookOpen className="h-4 w-4" />
                 <span>Subject Management ({subjects.length})</span>
@@ -292,7 +298,24 @@ export default function HomePage() {
             />
           </TabsContent>
 
-          {/* Tab 2: Subject Management */}
+          {/* Tab 2: Monthly Class Fee & Card Payment Management */}
+          <TabsContent value="payments" className="space-y-4">
+            <PaymentManager
+              students={students}
+              subjects={subjects}
+              isLoading={isDataLoading}
+              onUpdateStudentPayment={handleSaveStudent}
+              onShowQr={(student) => {
+                setQrStudent(student);
+                setIsNewStudentQr(false);
+              }}
+              onViewStudent={(student) => {
+                setViewingStudent(student);
+              }}
+            />
+          </TabsContent>
+
+          {/* Tab 3: Subject Management */}
           <TabsContent value="subjects" className="space-y-4">
             <SubjectManager
               subjects={subjects}
@@ -371,6 +394,29 @@ export default function HomePage() {
                         }}
                       >
                         Setup Subject Details
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-muted/40 border border-border flex items-start gap-4">
+                    <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      <CreditCard className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-foreground text-sm">
+                        Student Fee Payment & Card Concessions
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Track monthly class fees (Paid, Pending, Not Paid) and concession passes (Full Card, Half Card, Free Card).
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-3 text-xs gap-1.5"
+                        onClick={() => setActiveTab("payments")}
+                      >
+                        <CreditCard className="h-3.5 w-3.5 text-emerald-600" />
+                        Manage Monthly Payments
                       </Button>
                     </div>
                   </div>

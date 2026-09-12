@@ -20,15 +20,12 @@ import {
   AlertCircle,
   Clock,
   BookOpen,
-  Calendar,
   Mail,
   Phone,
-  MapPin,
-  CreditCard,
   Printer,
   ChevronLeft,
   User,
-  School,
+  Ticket,
 } from "lucide-react";
 
 export default function StudentVerificationPage() {
@@ -138,6 +135,8 @@ export default function StudentVerificationPage() {
 
   const isPaid = student.paymentStatus === "Paid";
   const isOverdue = student.paymentStatus === "Overdue";
+  const isUnpaid = student.paymentStatus === "Unpaid";
+  const cardType = student.cardType || "Full Card";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background flex flex-col items-center py-6 px-4 sm:px-6">
@@ -190,6 +189,17 @@ export default function StudentVerificationPage() {
                   </span>
                   <span>•</span>
                   <span>{student.grade}</span>
+                  <span>•</span>
+                  <Badge className={`text-[10px] px-2 py-0 border ${
+                    cardType === "Half Card"
+                      ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                      : cardType === "Free Card"
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                      : "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30"
+                  }`}>
+                    <Ticket className="h-3 w-3 mr-1 inline" />
+                    {cardType}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -203,6 +213,8 @@ export default function StudentVerificationPage() {
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-200"
                   : isOverdue
                   ? "bg-red-500/10 border-red-500/30 text-red-950 dark:text-red-200"
+                  : isUnpaid
+                  ? "bg-orange-500/10 border-orange-500/30 text-orange-950 dark:text-orange-200"
                   : "bg-amber-500/10 border-amber-500/30 text-amber-950 dark:text-amber-200"
               }`}
             >
@@ -216,6 +228,10 @@ export default function StudentVerificationPage() {
                     <div className="p-1.5 rounded-full bg-red-500 text-white shrink-0">
                       <AlertCircle className="h-4 w-4" />
                     </div>
+                  ) : isUnpaid ? (
+                    <div className="p-1.5 rounded-full bg-orange-500 text-white shrink-0">
+                      <AlertCircle className="h-4 w-4" />
+                    </div>
                   ) : (
                     <div className="p-1.5 rounded-full bg-amber-500 text-white shrink-0">
                       <Clock className="h-4 w-4" />
@@ -223,19 +239,21 @@ export default function StudentVerificationPage() {
                   )}
                   <div>
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-                      Course Payment Status
+                      Course Payment Status • {cardType}
                     </span>
                     <h3 className="font-bold text-base leading-tight">
                       {isPaid
                         ? `PAID - ${student.paymentMonth || "Current Month"}`
                         : isOverdue
                         ? `OVERDUE - ${student.paymentMonth || "Current Month"}`
+                        : isUnpaid
+                        ? `NOT PAID - ${student.paymentMonth || "Current Month"}`
                         : `PENDING - ${student.paymentMonth || "Current Month"}`}
                     </h3>
                   </div>
                 </div>
 
-                {student.monthlyFeeAmount && (
+                {student.monthlyFeeAmount !== undefined && (
                   <div className="text-right">
                     <span className="text-xs text-muted-foreground block">Monthly Fee</span>
                     <span className="font-bold text-lg text-foreground">
@@ -251,6 +269,8 @@ export default function StudentVerificationPage() {
                     ? `Settled on ${student.lastPaymentDate || "First of month"}`
                     : isOverdue
                     ? "Payment overdue. Please contact admin."
+                    : isUnpaid
+                    ? "Monthly fee not paid. Settlement required."
                     : "Pending payment verification"}
                 </span>
                 <span className="font-semibold underline cursor-default">

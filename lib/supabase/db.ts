@@ -32,7 +32,8 @@ export interface DBStudentRow {
   status: "Active" | "Inactive" | "Suspended" | "Graduated";
   enrolled_subject_ids: string[];
   attendance_rate: number | null;
-  payment_status: "Paid" | "Pending" | "Overdue";
+  payment_status: "Paid" | "Pending" | "Unpaid" | "Overdue";
+  card_type: "Full Card" | "Half Card" | "Free Card" | null;
   monthly_fee_amount: number | null;
   last_payment_date: string | null;
   payment_month: string | null;
@@ -81,7 +82,8 @@ export function mapDBStudentToStudent(row: DBStudentRow): Student {
     status: row.status,
     enrolledSubjectIds: Array.isArray(row.enrolled_subject_ids) ? row.enrolled_subject_ids : [],
     attendanceRate: row.attendance_rate !== null ? Number(row.attendance_rate) : undefined,
-    paymentStatus: row.payment_status,
+    paymentStatus: row.payment_status || "Paid",
+    cardType: row.card_type || "Full Card",
     monthlyFeeAmount: row.monthly_fee_amount !== null ? Number(row.monthly_fee_amount) : undefined,
     lastPaymentDate: row.last_payment_date || undefined,
     paymentMonth: row.payment_month || undefined,
@@ -104,7 +106,8 @@ export function mapStudentToDBStudent(student: Student): Omit<DBStudentRow, "upd
     status: student.status,
     enrolled_subject_ids: student.enrolledSubjectIds || [],
     attendance_rate: student.attendanceRate !== undefined ? Number(student.attendanceRate) : null,
-    payment_status: student.paymentStatus,
+    payment_status: student.paymentStatus || "Paid",
+    card_type: student.cardType || "Full Card",
     monthly_fee_amount: student.monthlyFeeAmount !== undefined ? Number(student.monthlyFeeAmount) : null,
     last_payment_date: student.lastPaymentDate || null,
     payment_month: student.paymentMonth || null,

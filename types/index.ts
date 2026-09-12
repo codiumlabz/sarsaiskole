@@ -9,6 +9,9 @@ export interface Subject {
   createdAt: string;
 }
 
+export type CardType = "Full Card" | "Half Card" | "Free Card";
+export type PaymentStatus = "Paid" | "Pending" | "Unpaid" | "Overdue";
+
 export interface Student {
   id: string;
   studentId: string;
@@ -22,7 +25,8 @@ export interface Student {
   status: "Active" | "Inactive" | "Suspended" | "Graduated";
   enrolledSubjectIds: string[];
   attendanceRate?: number;
-  paymentStatus: "Paid" | "Pending" | "Overdue";
+  paymentStatus: PaymentStatus;
+  cardType?: CardType;
   monthlyFeeAmount?: number;
   lastPaymentDate?: string;
   paymentMonth?: string;
