@@ -89,6 +89,7 @@ CREATE INDEX IF NOT EXISTS idx_students_student_id ON students(student_id);
 CREATE INDEX IF NOT EXISTS idx_students_email ON students(email);
 CREATE INDEX IF NOT EXISTS idx_students_status ON students(status);
 CREATE INDEX IF NOT EXISTS idx_students_payment_status ON students(payment_status);
+CREATE INDEX IF NOT EXISTS idx_students_card_type ON students(card_type);
 CREATE INDEX IF NOT EXISTS idx_students_grade ON students(grade);
 
 CREATE INDEX IF NOT EXISTS idx_student_subjects_student ON student_subjects(student_id);
