@@ -20,7 +20,7 @@ export async function GET(
     const { data: student, error } = await supabase
       .from('students')
       .select('*')
-      .or("id.eq.,student_id.eq.")
+      .or(`id.eq.${id},student_id.eq.${id}`)
       .single();
 
     if (error) {
