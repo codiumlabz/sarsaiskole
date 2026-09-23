@@ -3,35 +3,40 @@ import { getSupabaseClient } from '@/lib/supabase/client';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const supabase = getSupabaseClient();
     
     if (!supabase) {
       return NextResponse.json(
-        { error: 'Database not configured' },
+        { error: 'Database not configured (missing env vars)' },
         { status: 500 }
       );
     }
 
-    // The QR code might contain the UUID or the short student_id
     const { data: student, error } = await supabase
       .from('students')
       .select('*')
       .or("id.eq.,student_id.eq.")
       .single();
 
-    if (error || !student) {
+    if (error) {
+      return NextResponse.json(
+        { error: 'Supabase Error: ' + error.message, details: error },
+        { status: 500 }
+      );
+    }
+
+    if (!student) {
       return NextResponse.json(
         { error: 'Student not found' },
         { status: 404 }
       );
     }
 
-    // Map database fields to the format expected by the mobile app
     const mappedStudent = {
       ...student,
       studentId: student.student_id,
@@ -39,10 +44,9 @@ export async function GET(
     };
 
     return NextResponse.json(mappedStudent);
-  } catch (error) {
-    console.error('Error fetching student:', error);
+  } catch (error: any) {
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error: ' + error.message },
       { status: 500 }
     );
   }
