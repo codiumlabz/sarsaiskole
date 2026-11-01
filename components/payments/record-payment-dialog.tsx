@@ -151,7 +151,7 @@ export function RecordPaymentDialog({
               {enrolledCount} {enrolledCount === 1 ? "Subject" : "Subjects"}
             </span>
             <span className="text-xs font-semibold text-primary">
-              Est. ${baseFullFee}/mo (Full)
+              Est. LKR {baseFullFee}/mo (Full)
             </span>
           </div>
         </div>
@@ -296,16 +296,16 @@ export function RecordPaymentDialog({
             {/* Fee Amount */}
             <div className="space-y-1.5">
               <Label htmlFor="feeAmount" className="text-xs font-semibold">
-                Class Fee Amount ($ / LKR)
+                Class Fee Amount (LKR)
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-xs font-bold text-muted-foreground">$</span>
+                <span className="absolute left-3 top-2.5 text-[10px] font-bold text-muted-foreground">LKR</span>
                 <Input
                   id="feeAmount"
                   type="number"
                   min="0"
                   step="1"
-                  className="pl-7 h-9 text-sm"
+                  className="pl-9 h-9 text-sm"
                   value={monthlyFeeAmount}
                   onChange={(e) => setMonthlyFeeAmount(e.target.value)}
                   disabled={cardType === "Free Card"}

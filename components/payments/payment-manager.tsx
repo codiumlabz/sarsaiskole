@@ -181,7 +181,7 @@ export function PaymentManager({
       monthlyFeeAmount: newFee,
     };
     onUpdateStudentPayment(updated, false);
-    toast.success(`${student.name} switched to ${newCard} ($${newFee}/mo)`);
+    toast.success(`${student.name} switched to ${newCard} (LKR ${newFee}/mo)`);
   };
 
   const getCardTypeBadge = (cardType?: CardType) => {
@@ -263,7 +263,7 @@ export function PaymentManager({
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-2xl font-bold text-foreground">
-                ${metrics.totalCollected}
+                LKR {metrics.totalCollected}
               </span>
               <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                 {metrics.paidCount} students ({metrics.collectionRate}%)
@@ -291,7 +291,7 @@ export function PaymentManager({
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-2xl font-bold text-foreground">
-                ${metrics.totalPendingAmount}
+                LKR {metrics.totalPendingAmount}
               </span>
               <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
                 {metrics.pendingCount} students
@@ -316,7 +316,7 @@ export function PaymentManager({
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-2xl font-bold text-foreground">
-                ${metrics.totalUnpaidAmount}
+                LKR {metrics.totalUnpaidAmount}
               </span>
               <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
                 {metrics.unpaidCount + metrics.overdueCount} students
@@ -609,7 +609,7 @@ export function PaymentManager({
                     {/* Monthly Class Fee Amount */}
                     <TableCell>
                       <div className="font-bold text-sm text-foreground">
-                        ${feeAmount}
+                        LKR {feeAmount}
                         <span className="text-[10px] font-normal text-muted-foreground ml-1">
                           / month
                         </span>

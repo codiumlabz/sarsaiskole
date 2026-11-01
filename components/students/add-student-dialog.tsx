@@ -397,7 +397,7 @@ export function AddStudentDialog({
 
               <div className="space-y-1.5">
                 <Label htmlFor="monthlyFee" className="text-xs font-medium">
-                  Monthly Fee ($ / Amount)
+                  Monthly Fee (LKR)
                 </Label>
                 <Input
                   id="monthlyFee"

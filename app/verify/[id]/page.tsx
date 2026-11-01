@@ -257,7 +257,7 @@ export default function StudentVerificationPage() {
                   <div className="text-right">
                     <span className="text-xs text-muted-foreground block">Monthly Fee</span>
                     <span className="font-bold text-lg text-foreground">
-                      ${student.monthlyFeeAmount}
+                      LKR {student.monthlyFeeAmount}
                     </span>
                   </div>
                 )}

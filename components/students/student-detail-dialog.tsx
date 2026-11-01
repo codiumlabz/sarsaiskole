@@ -186,7 +186,7 @@ export function StudentDetailDialog({
                 <div>{getPaymentBadge(student.paymentStatus)}</div>
                 {student.monthlyFeeAmount !== undefined && (
                   <span className="text-sm font-bold text-foreground">
-                    ${student.monthlyFeeAmount}
+                    LKR {student.monthlyFeeAmount}
                   </span>
                 )}
               </div>
